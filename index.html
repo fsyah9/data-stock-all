@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tampilan Stok</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Mencegah scroll horizontal */
+        }
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid black;
+            max-width: 500px;
+            margin: 20px auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 100%; /* Pastikan lebar 100% */
+            overflow: hidden; /* Mencegah overflow dalam container */
+        }
+        h3 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 10px;
+            width: 100%;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        .total-stock {
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            table, th, td {
+                padding: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>DATA STOCK ALL</h3>
+        <div class="input-group">
+            <label for="search">SEARCH</label>
+            <input type="text" id="search" placeholder="Masukkan KODE / ITEM" oninput="fetchStockData()">
+        </div>
+        <div class="input-group">
+            <label for="item-code">ITEM CODE</label>
+            <input type="text" id="item-code" readonly>
+        </div>
+        <div class="input-group">
+            <label for="item-desc">ITEM DESCRIPTION</label>
+            <input type="text" id="item-desc" readonly>
+        </div>
+
+        <table id="stock-table">
+            <thead>
+                <tr>
+                    <th>Stock Type</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data stok akan muncul di sini -->
+            </tbody>
+        </table>
+
+        <div class="total-stock" id="total-stock">
+            TOTAL STOCK: 0
+        </div>
+    </div>
+
+    <script>
+        function fetchStockData() {
+            const searchQuery = document.getElementById("search").value;
+
+            // Mengambil data dari Google Apps Script
+            if (searchQuery !== "") {
+                google.script.run.withSuccessHandler(displayData).getStockData(searchQuery);
+            } else {
+                clearData();
+            }
+        }
+
+        function displayData(data) {
+            const stockTableBody = document.querySelector("#stock-table tbody");
+            const itemCode = document.getElementById("item-code");
+            const itemDesc = document.getElementById("item-desc");
+            const totalStockElem = document.getElementById("total-stock");
+
+            // Kosongkan tabel stok sebelumnya
+            stockTableBody.innerHTML = "";
+            let totalStock = 0;
+
+            // Tampilkan data item
+            if (data && data.itemCode) {
+                itemCode.value = data.itemCode;
+                itemDesc.value = data.itemDescription;
+
+                // Loop data stock dan tampilkan di tabel
+                Object.keys(data.stocks).forEach(key => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `<td>${key}</td><td>${data.stocks[key]}</td>`;
+                    stockTableBody.appendChild(row);
+                    totalStock += data.stocks[key];
+                });
+
+                totalStockElem.textContent = `TOTAL STOCK: ${totalStock}`;
+            } else {
+                clearData();
+            }
+        }
+
+        function clearData() {
+            document.getElementById("item-code").value = "";
+            document.getElementById("item-desc").value = "";
+            document.querySelector("#stock-table tbody").innerHTML = "";
+            document.getElementById("total-stock").textContent = "TOTAL STOCK: 0";
+        }
+    </script>
+</body>
+</html>
